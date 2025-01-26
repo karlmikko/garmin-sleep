@@ -15,6 +15,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.4.0",
     "@mui/x-charts": "^7.23.6",
+    "@mui/x-date-pickers": "^7.24.1",
     "@remix-run/node": "^2.15.2",
     "@remix-run/react": "^2.15.2",
     "@remix-run/serve": "^2.15.2",
