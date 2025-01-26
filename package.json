@@ -19,13 +19,15 @@
     "@remix-run/react": "^2.15.2",
     "@remix-run/serve": "^2.15.2",
     "@zip.js/zip.js": "^2.7.54",
-    "dayjs": "^1.11.13",
     "isbot": "^4.1.0",
+    "luxon": "^3.5.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "simple-statistics": "^7.8.7"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.2",
+    "@types/luxon": "^3.4.2",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
