@@ -20,19 +20,22 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 
 // https://www.statology.org/percentile-vs-quartile-vs-quantile/
-const makeStats = (data) => ({
-  p0: data.length == 1 ? data[0] : quantile(data, 0),
-  p1: data.length == 1 ? data[0] : quantile(data, 0.01),
-  p10: data.length == 1 ? data[0] : quantile(data, 0.1),
-  p25: data.length == 1 ? data[0] : quantile(data, 0.25),
-  p50: data.length == 1 ? data[0] : quantile(data, 0.5),
-  p75: data.length == 1 ? data[0] : quantile(data, 0.75),
-  p90: data.length == 1 ? data[0] : quantile(data, 0.9),
-  p99: data.length == 1 ? data[0] : quantile(data, 0.99),
-  p100: data.length == 1 ? data[0] : quantile(data, 1),
-  mean: data.length == 1 ? data[0] : mean(data),
-  sd: data.length == 1 ? 0 : standardDeviation(data),
-});
+const makeStats = (data) => {
+  const dl = data.length;
+  return {
+    p0: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0),
+    p1: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.01),
+    p10: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.1),
+    p25: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.25),
+    p50: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.5),
+    p75: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.75),
+    p90: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.9),
+    p99: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 0.99),
+    p100: dl == 0 ? null : dl == 1 ? data[0] : quantile(data, 1),
+    mean: dl == 0 ? null : dl == 1 ? data[0] : mean(data),
+    sd: dl == 0 ? null : dl == 1 ? null : standardDeviation(data),
+  };
+};
 
 const statKeys = Object.keys(makeStats([0]));
 
@@ -179,7 +182,7 @@ const DataView = ({ data, reset }) => {
           <div className="flex-auto grid justify-items-start gap-5">
             <ButtonGroup variant="outlined">
               <Button variant="text" disabled>
-                Group By
+                Metrics
               </Button>
               <Button onClick={() => setOpenMetricsSelector(true)}>
                 Select Metrics
