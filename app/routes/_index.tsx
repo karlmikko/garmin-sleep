@@ -231,21 +231,6 @@ const DataView = ({ data, reset }) => {
           }))}
           height={800}
         />
-        {/* <LinePlot />
-          <ChartsXAxis label="Time" position="bottom" axisId="x-axis-id" />
-          <ChartsYAxis label="Percent" position="left" />
-        </LineChart> */}
-        {/* <pre>
-          {JSON.stringify(
-            allMetrics.map((metricKey) => ({
-              data: rangeKeys,
-              scaleType: 'band',
-            })),
-            null,
-            2
-          )}
-        </pre> */}
-        {/* <pre>{JSON.stringify(Object.values(groupedData), null, 2)}</pre> */}
         <Footer />
       </div>
     </LocalizationProvider>
