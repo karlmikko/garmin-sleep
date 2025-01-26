@@ -1,35 +1,40 @@
 import { useState } from 'react';
 import type { MetaFunction } from '@remix-run/node';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { LinePlot, LineChart } from '@mui/x-charts/LineChart';
-import { ResponsiveChartContainer } from '@mui/x-charts';
+import { LineChart } from '@mui/x-charts/LineChart';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import * as zip from '@zip.js/zip.js';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { DateTime } from 'luxon';
-import { mean, min, quantile, standardDeviation } from 'simple-statistics';
+import { mean, quantile, standardDeviation } from 'simple-statistics';
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
-import { ChartsXAxis } from '@mui/x-charts/ChartsXAxis';
-import { ChartsYAxis } from '@mui/x-charts/ChartsYAxis';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 
 // https://www.statology.org/percentile-vs-quartile-vs-quantile/
 const makeStats = (data) => ({
-  p0: data.length == 0 ? data[0] : quantile(data, 0),
-  p1: data.length == 0 ? data[0] : quantile(data, 0.01),
-  p10: data.length == 0 ? data[0] : quantile(data, 0.1),
-  p25: data.length == 0 ? data[0] : quantile(data, 0.25),
-  p50: data.length == 0 ? data[0] : quantile(data, 0.5),
-  p75: data.length == 0 ? data[0] : quantile(data, 0.75),
-  p90: data.length == 0 ? data[0] : quantile(data, 0.9),
-  p99: data.length == 0 ? data[0] : quantile(data, 0.99),
-  p100: data.length == 0 ? data[0] : quantile(data, 1),
-  mean: data.length == 0 ? data[0] : mean(data),
-  sd: data.length == 0 ? 0 : standardDeviation(data),
+  p0: data.length == 1 ? data[0] : quantile(data, 0),
+  p1: data.length == 1 ? data[0] : quantile(data, 0.01),
+  p10: data.length == 1 ? data[0] : quantile(data, 0.1),
+  p25: data.length == 1 ? data[0] : quantile(data, 0.25),
+  p50: data.length == 1 ? data[0] : quantile(data, 0.5),
+  p75: data.length == 1 ? data[0] : quantile(data, 0.75),
+  p90: data.length == 1 ? data[0] : quantile(data, 0.9),
+  p99: data.length == 1 ? data[0] : quantile(data, 0.99),
+  p100: data.length == 1 ? data[0] : quantile(data, 1),
+  mean: data.length == 1 ? data[0] : mean(data),
+  sd: data.length == 1 ? 0 : standardDeviation(data),
 });
+
+const statKeys = Object.keys(makeStats([0]));
 
 const darkTheme = createTheme({
   palette: {
@@ -81,7 +86,11 @@ const percentPaths = [
 
 const spo2Paths = ['averageHR', 'averageSPO2', 'lowestSPO2'];
 
-const allMetrics = [...spo2Paths, ...percentPaths.slice(1)];
+const allMetricsKeys = [...spo2Paths, ...percentPaths];
+
+const allMetrics = allMetricsKeys
+  .map((x) => statKeys.map((y) => [x, y]))
+  .flat();
 
 const groupData = (data, groupFn) => {
   const grouped = Object.groupBy(data, (x) => groupFn(x.calendarDateTime));
@@ -141,6 +150,12 @@ const DataView = ({ data, reset }) => {
   const [initialStart, initialEnd] = startEndDates(data);
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
+  const [openMetricsSelector, setOpenMetricsSelector] = useState(false);
+  const [selectedMetrics, setSelectedMetrics] = useState([
+    ['averageHR', 'p50'],
+    ['averageSPO2', 'p50'],
+    ['lowestSPO2', 'p50'],
+  ]);
   const groupFn = groupers[period];
   const groupedData = groupData(
     data.filter(
@@ -148,20 +163,28 @@ const DataView = ({ data, reset }) => {
     ),
     groupFn
   );
-  const rangeKeys = expectedDates(startDate, endDate, groupFn);
-  const seriesData = allMetrics.map((metricKey) => ({
-    type: 'line',
-    data: rangeKeys.map((key) => groupedData[key]?.[metricKey]?.p50),
-    label: metricKey,
-  }));
 
-  console.log(seriesData);
+  const rangeKeys = expectedDates(startDate, endDate, groupFn);
+
+  const seriesData = selectedMetrics.map(([metricKey, statKey]) => ({
+    type: 'line',
+    data: rangeKeys.map((key) => groupedData[key]?.[metricKey]?.[statKey]),
+    label: `${metricKey}-${statKey}`,
+  }));
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
       <div className="flex h-screen flex-col gap-10">
         <header className="flex flex-row">
           <div className="flex-auto grid justify-items-start gap-5">
+            <ButtonGroup variant="outlined">
+              <Button variant="text" disabled>
+                Group By
+              </Button>
+              <Button onClick={() => setOpenMetricsSelector(true)}>
+                Select Metrics
+              </Button>
+            </ButtonGroup>
             <ButtonGroup variant="outlined">
               <Button variant="text" disabled>
                 Group By
@@ -196,14 +219,14 @@ const DataView = ({ data, reset }) => {
                 value={startDate}
                 minDate={initialStart}
                 maxDate={endDate}
-                onChange={(v) => setStartDate(v)}
+                onChange={setStartDate}
               />
               <DatePicker
                 label="End Date"
                 value={endDate}
                 minDate={startDate}
                 maxDate={initialEnd}
-                onChange={(v) => setEndDate(v)}
+                onChange={setEndDate}
               />
               <Button
                 variant="text"
@@ -216,7 +239,7 @@ const DataView = ({ data, reset }) => {
               </Button>
             </div>
           </div>
-          <div className="w-100 h-10 flex-initial grid justify-items-end gap-5">
+          <div className="w-100 h-8 flex-initial grid justify-items-end gap-5">
             <Button variant="outlined" onClick={reset}>
               Back
             </Button>
@@ -224,7 +247,7 @@ const DataView = ({ data, reset }) => {
         </header>
         <LineChart
           series={seriesData}
-          xAxis={allMetrics.map((metricKey) => ({
+          xAxis={selectedMetrics.map(() => ({
             data: rangeKeys,
             scaleType: 'point',
             id: 'x-axis-id',
@@ -232,6 +255,65 @@ const DataView = ({ data, reset }) => {
           height={800}
         />
         <Footer />
+        <Modal
+          open={openMetricsSelector}
+          onClose={() => setOpenMetricsSelector(false)}
+          aria-labelledby="select-metrics-modal"
+        >
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 400,
+              bgcolor: 'background.paper',
+              border: '2px solid #000',
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
+            <Typography id="select-metrics-modal" variant="h6" component="h2">
+              Select Metrics
+            </Typography>
+            <div className="overflow-scroll" style={{ height: 300 }}>
+              <FormGroup>
+                <>
+                  {allMetrics.map(([metricKey, statKey]) => (
+                    <FormControlLabel
+                      key={`${metricKey}-${statKey}`}
+                      control={
+                        <Checkbox
+                          defaultChecked={
+                            !!selectedMetrics.find(
+                              ([mk, sk]) => mk == metricKey && sk == statKey
+                            )
+                          }
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMetrics([
+                                ...selectedMetrics,
+                                [metricKey, statKey],
+                              ]);
+                            } else {
+                              setSelectedMetrics(
+                                selectedMetrics.filter(
+                                  ([mk, sk]) =>
+                                    !(mk == metricKey && sk == statKey)
+                                )
+                              );
+                            }
+                          }}
+                        />
+                      }
+                      label={`${metricKey}-${statKey}`}
+                    />
+                  ))}
+                </>
+              </FormGroup>
+            </div>
+          </Box>
+        </Modal>
       </div>
     </LocalizationProvider>
   );
