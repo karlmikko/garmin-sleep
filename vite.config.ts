@@ -22,14 +22,8 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
-  optimizeDeps: {
-    force: true,
-    include: [
-      // '@emotion/styled',
-      // '@mui/material',
-      // '@mui/x-charts',
-      // '@mui/x-date-pickers',
-      // '@mui/x-date-pickers/AdapterLuxon',
-    ],
+  ssr: {
+    // Bundle `problematic-dependency` into the server build
+    noExternal: ['@mui/**'],
   },
 });

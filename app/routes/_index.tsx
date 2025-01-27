@@ -18,8 +18,7 @@ import * as zip from '@zip.js/zip.js';
 import { DateTime } from 'luxon';
 import { mean, quantile, standardDeviation } from 'simple-statistics';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import * as AL from '@mui/x-date-pickers/AdapterLuxon';
-const { AdapterLuxon } = AL;
+import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
 
 // https://www.statology.org/percentile-vs-quartile-vs-quantile/
 const makeStats = (data) => {
