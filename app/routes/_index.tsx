@@ -494,12 +494,13 @@ export default function Index() {
           </header>
           <p className="text-gray-600 dark:text-gray-400">
             To export all of your Garmin data, visit{' '}
-            <a
+            <Button
+              variant="outlined"
               href="https://www.garmin.com/en-US/account/datamanagement/"
               target="_blank"
             >
               Data Management in your Garmin account
-            </a>
+            </Button>
             .
           </p>
           <Footer />
