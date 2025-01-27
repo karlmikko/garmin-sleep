@@ -1,23 +1,25 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { MetaFunction } from '@remix-run/node';
-import { BarChart } from '@mui/x-charts/BarChart';
-import { LineChart } from '@mui/x-charts/LineChart';
-import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
+import { BarChart, LineChart } from '@mui/x-charts';
+import {
+  Button,
+  ButtonGroup,
+  CssBaseline,
+  Box,
+  Typography,
+  Modal,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
+  ThemeProvider,
+  createTheme,
+} from '@mui/material';
 import * as zip from '@zip.js/zip.js';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { DateTime } from 'luxon';
 import { mean, quantile, standardDeviation } from 'simple-statistics';
-import { DatePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterLuxon } from '@mui/x-date-pickers/AdapterLuxon';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Modal from '@mui/material/Modal';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import * as AL from '@mui/x-date-pickers/AdapterLuxon';
+const { AdapterLuxon } = AL;
 
 // https://www.statology.org/percentile-vs-quartile-vs-quantile/
 const makeStats = (data) => {
@@ -38,12 +40,6 @@ const makeStats = (data) => {
 };
 
 const statKeys = Object.keys(makeStats([0]));
-
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
 
 export const meta: MetaFunction = () => {
   return [
@@ -326,6 +322,15 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
+  const darkTheme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: 'dark',
+        },
+      }),
+    []
+  );
   if (data !== null) {
     return (
       <ThemeProvider theme={darkTheme}>
