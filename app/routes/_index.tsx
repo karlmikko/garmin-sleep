@@ -431,9 +431,17 @@ export default function Index() {
                             .filter((x) =>
                               x.filename.includes('_sleepData.json')
                             )
-                            .map(async (x) =>
-                              JSON.parse(await x.getData(new zip.TextWriter()))
-                            )
+                            .map(async (x) => {
+                              try {
+                                return JSON.parse(
+                                  await x.getData(new zip.TextWriter())
+                                );
+                              } catch (e) {
+                                // console.error(x.filename, e);
+                                return null;
+                              }
+                            })
+                            .filter((x) => x)
                         )
                       )
                         .flat()
