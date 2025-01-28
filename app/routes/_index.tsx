@@ -65,8 +65,8 @@ const twoDecimalPlaces = (x) => new Number(x.toFixed(2));
 
 const groupers = {
   day: (dt) => `${dt.year}-${dt.month}-${dt.day}`,
-  week: (dt) => `${dt.year}-w-${dt.weekNumber}`,
-  fortnight: (dt) => `${dt.year}-2w-${Math.ceil(dt.weekNumber / 2)}`,
+  week: (dt) => `${dt.weekYear}-w-${dt.weekNumber}`,
+  fortnight: (dt) => `${dt.weekYear}-2w-${Math.ceil(dt.weekNumber / 2)}`,
   month: (dt) => `${dt.year}-m-${dt.month}`,
   '3months': (dt) => `${dt.year}-3m-${Math.ceil(dt.month / 3)}`,
   '6months': (dt) => `${dt.year}-6m-${Math.ceil(dt.month / 6)}`,
@@ -217,14 +217,22 @@ const DataView = ({ data, reset }) => {
                 value={startDate}
                 minDate={initialStart}
                 maxDate={endDate}
-                onChange={setStartDate}
+                onChange={(v) => {
+                  if (v >= initialStart && v <= endDate) {
+                    setStartDate(v);
+                  }
+                }}
               />
               <DatePicker
                 label="End Date"
                 value={endDate}
                 minDate={startDate}
                 maxDate={initialEnd}
-                onChange={setEndDate}
+                onChange={(v) => {
+                  if (v >= startDate && v <= initialEnd) {
+                    setEndDate(v);
+                  }
+                }}
               />
               <Button
                 variant="text"
@@ -251,6 +259,7 @@ const DataView = ({ data, reset }) => {
             id: 'x-axis-id',
           }))}
           height={800}
+          grid={{ horizontal: true }}
         />
         <Footer />
         <Modal
