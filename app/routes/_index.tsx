@@ -87,7 +87,7 @@ const spo2Paths = ['averageHR', 'averageSPO2', 'lowestSPO2'];
 const allMetricsKeys = [...spo2Paths, ...percentPaths];
 
 const allMetrics = allMetricsKeys
-  .map((x) => statKeys.map((y) => [x, y]))
+  .map((x) => statKeys.map((y) => `${x}-${y}`))
   .flat();
 
 const groupData = (data, groupFn) => {
@@ -143,17 +143,38 @@ const expectedDates = (start, end, groupFn, res = []) => {
   ]);
 };
 
+const defaultMetricSets = {
+  hrspo2: ['averageHR-mean', 'averageSPO2-mean', 'lowestSPO2-mean'],
+  sleepRatio: [
+    'deepSleepPercent-mean',
+    'remSleepPercent-mean',
+    'lightSleepPercent-mean',
+    'awakeSleepPercent-mean',
+  ],
+  totalSleep: ['totalSleepSeconds-mean'],
+};
+
+const defaultMetricLabels = [
+  ['hrspo2', 'HR / SPO2'],
+  ['sleepRatio', 'Sleep Ratio'],
+  ['totalSleep', 'Total Sleep'],
+];
+
+const matchDefault = (vals, k) => {
+  const a = new Set(vals);
+  const b = new Set(defaultMetricSets[k]);
+  return a.size === b.size && a.difference(b).size === 0;
+};
+
 const DataView = ({ data, reset }) => {
   const [period, setPeriod] = useState('month');
   const [initialStart, initialEnd] = startEndDates(data);
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
   const [openMetricsSelector, setOpenMetricsSelector] = useState(false);
-  const [selectedMetrics, setSelectedMetrics] = useState([
-    ['averageHR', 'p50'],
-    ['averageSPO2', 'p50'],
-    ['lowestSPO2', 'p50'],
-  ]);
+  const [selectedMetrics, setSelectedMetrics] = useState(
+    defaultMetricSets.hrspo2
+  );
   const groupFn = groupers[period];
   const groupedData = groupData(
     data.filter(
@@ -164,11 +185,13 @@ const DataView = ({ data, reset }) => {
 
   const rangeKeys = expectedDates(startDate, endDate, groupFn);
 
-  const seriesData = selectedMetrics.map(([metricKey, statKey]) => ({
-    type: 'line',
-    data: rangeKeys.map((key) => groupedData[key]?.[metricKey]?.[statKey]),
-    label: `${metricKey}-${statKey}`,
-  }));
+  const seriesData = selectedMetrics
+    .map((x) => x.split('-', 2))
+    .map(([metricKey, statKey]) => ({
+      type: 'line',
+      data: rangeKeys.map((key) => groupedData[key]?.[metricKey]?.[statKey]),
+      label: `${metricKey}-${statKey}`,
+    }));
 
   return (
     <LocalizationProvider dateAdapter={AdapterLuxon}>
@@ -182,6 +205,21 @@ const DataView = ({ data, reset }) => {
               <Button onClick={() => setOpenMetricsSelector(true)}>
                 Select Metrics
               </Button>
+              <>
+                {defaultMetricLabels.map(([mKey, mLabel]) => (
+                  <Button
+                    key={mKey}
+                    variant={
+                      matchDefault(selectedMetrics, mKey)
+                        ? 'contained'
+                        : 'outlined'
+                    }
+                    onClick={() => setSelectedMetrics(defaultMetricSets[mKey])}
+                  >
+                    {mLabel}
+                  </Button>
+                ))}
+              </>
             </ButtonGroup>
             <ButtonGroup variant="outlined">
               <Button variant="text" disabled>
@@ -286,34 +324,21 @@ const DataView = ({ data, reset }) => {
             <div className="overflow-scroll" style={{ height: 300 }}>
               <FormGroup>
                 <>
-                  {allMetrics.map(([metricKey, statKey]) => (
+                  {allMetrics.map((metric) => (
                     <FormControlLabel
-                      key={`${metricKey}-${statKey}`}
-                      control={
-                        <Checkbox
-                          defaultChecked={
-                            !!selectedMetrics.find(
-                              ([mk, sk]) => mk == metricKey && sk == statKey
-                            )
-                          }
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedMetrics([
-                                ...selectedMetrics,
-                                [metricKey, statKey],
-                              ]);
-                            } else {
-                              setSelectedMetrics(
-                                selectedMetrics.filter(
-                                  ([mk, sk]) =>
-                                    !(mk == metricKey && sk == statKey)
-                                )
-                              );
-                            }
-                          }}
-                        />
-                      }
-                      label={`${metricKey}-${statKey}`}
+                      key={metric}
+                      checked={!!selectedMetrics.find((m) => m == metric)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMetrics([...selectedMetrics, metric]);
+                        } else {
+                          setSelectedMetrics(
+                            selectedMetrics.filter((m) => !(m == metric))
+                          );
+                        }
+                      }}
+                      control={<Checkbox />}
+                      label={metric}
                     />
                   ))}
                 </>
