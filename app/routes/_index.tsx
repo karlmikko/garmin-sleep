@@ -189,6 +189,7 @@ const DataView = ({ data, reset }) => {
     .map((x) => x.split('-', 2))
     .map(([metricKey, statKey]) => ({
       type: 'line',
+      id: `${metricKey}-${statKey}-${period}`,
       data: rangeKeys.map((key) => groupedData[key]?.[metricKey]?.[statKey]),
       label: `${metricKey}-${statKey}`,
     }));
