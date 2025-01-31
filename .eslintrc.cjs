@@ -3,6 +3,7 @@
  * It relies on recommended configs out of the box for simplicity, but you can
  * and should modify this configuration to best suit your team's needs.
  */
+import reactCompiler from 'eslint-plugin-react-compiler'
 
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
@@ -25,6 +26,16 @@ module.exports = {
   extends: ["eslint:recommended"],
 
   overrides: [
+    // React Compiler
+    {
+      plugins: {
+        'react-compiler': reactCompiler,
+      },
+      rules: {
+        'react-compiler/react-compiler': 'error',
+      },
+    },
+
     // React
     {
       files: ["**/*.{js,jsx,ts,tsx}"],
